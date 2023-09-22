@@ -1,0 +1,29 @@
+#ifdef _WIN64
+  #ifdef _UNICODE
+    #ifdef _DEBUG
+            VALUE  "SpecialBuild",  "64-bit UNICODE DEBUG version"    "\0"
+    #else
+            VALUE  "SpecialBuild",  "64-bit UNICODE Release version"  "\0"
+    #endif
+  #else
+    #ifdef _DEBUG
+            VALUE  "SpecialBuild",  "64-bit DEBUG version"            "\0"
+    #else
+            VALUE  "SpecialBuild",  "64-bit Release version"          "\0"
+    #endif
+  #endif
+#else // _WIN32
+  #ifdef _UNICODE
+    #ifdef _DEBUG
+            VALUE  "SpecialBuild",  "32-bit UNICODE DEBUG version"    "\0"
+    #else
+            VALUE  "SpecialBuild",  "32-bit UNICODE Release version"  "\0"
+    #endif
+  #else
+    #ifdef _DEBUG
+            VALUE  "SpecialBuild",  "32-bit DEBUG version"            "\0"
+    #else
+            VALUE  "SpecialBuild",  "32-bit Release version"          "\0"
+    #endif
+  #endif
+#endif

@@ -1,0 +1,96 @@
+*-------------------------------------------------------------------------------
+*
+*        RFC 6238 -- TOTP: Time-Based One-Time Password Algorithm
+*
+*-------------------------------------------------------------------------------
+*
+*   Appendix B.  Test Vectors
+*  
+*     This section provides test values that can be used for the HOTP time-
+*     based variant algorithm interoperability test.
+*  
+*     The test token shared secrets use the following ASCII string values:
+*
+*       SHA1   (20 bytes):  "12345678901234567890"
+*       SHA256 (32 bytes):  "12345678901234567890123456789012"
+*       SHA512 (64 bytes):  "1234567890123456789012345678901234567890123456789012345678901234"
+*
+*     With Time Step X = 30, and the Unix epoch as
+*     the initial value to count time steps, where T0 = 0, the TOTP
+*     algorithm will display the following values for specified modes and
+*     timestamps.
+*     
+*    +-------------+--------------+------------------+----------+--------+
+*    |  Time (sec) |   UTC Time   | Value of T (hex) |   TOTP   |  Mode  |
+*    +-------------+--------------+------------------+----------+--------+
+*    |      59     |  1970-01-01  | 0000000000000001 | 94287082 |  SHA1  |
+*    |             |   00:00:59   |                  |          |        |
+*    |      59     |  1970-01-01  | 0000000000000001 | 46119246 | SHA256 |
+*    |             |   00:00:59   |                  |          |        |
+*    |      59     |  1970-01-01  | 0000000000000001 | 90693936 | SHA512 |
+*    |             |   00:00:59   |                  |          |        |
+*    |  1111111109 |  2005-03-18  | 00000000023523EC | 07081804 |  SHA1  |
+*    |             |   01:58:29   |                  |          |        |
+*    |  1111111109 |  2005-03-18  | 00000000023523EC | 68084774 | SHA256 |
+*    |             |   01:58:29   |                  |          |        |
+*    |  1111111109 |  2005-03-18  | 00000000023523EC | 25091201 | SHA512 |
+*    |             |   01:58:29   |                  |          |        |
+*    |  1111111111 |  2005-03-18  | 00000000023523ED | 14050471 |  SHA1  |
+*    |             |   01:58:31   |                  |          |        |
+*    |  1111111111 |  2005-03-18  | 00000000023523ED | 67062674 | SHA256 |
+*    |             |   01:58:31   |                  |          |        |
+*    |  1111111111 |  2005-03-18  | 00000000023523ED | 99943326 | SHA512 |
+*    |             |   01:58:31   |                  |          |        |
+*    |  1234567890 |  2009-02-13  | 000000000273EF07 | 89005924 |  SHA1  |
+*    |             |   23:31:30   |                  |          |        |
+*    |  1234567890 |  2009-02-13  | 000000000273EF07 | 91819424 | SHA256 |
+*    |             |   23:31:30   |                  |          |        |
+*    |  1234567890 |  2009-02-13  | 000000000273EF07 | 93441116 | SHA512 |
+*    |             |   23:31:30   |                  |          |        |
+*    |  2000000000 |  2033-05-18  | 0000000003F940AA | 69279037 |  SHA1  |
+*    |             |   03:33:20   |                  |          |        |
+*    |  2000000000 |  2033-05-18  | 0000000003F940AA | 90698825 | SHA256 |
+*    |             |   03:33:20   |                  |          |        |
+*    |  2000000000 |  2033-05-18  | 0000000003F940AA | 38618901 | SHA512 |
+*    |             |   03:33:20   |                  |          |        |
+*    | 20000000000 |  2603-10-11  | 0000000027BC86AA | 65353130 |  SHA1  |
+*    |             |   11:33:20   |                  |          |        |
+*    | 20000000000 |  2603-10-11  | 0000000027BC86AA | 77737706 | SHA256 |
+*    |             |   11:33:20   |                  |          |        |
+*    | 20000000000 |  2603-10-11  | 0000000027BC86AA | 47863826 | SHA512 |
+*    |             |   11:33:20   |                  |          |        |
+*    +-------------+--------------+------------------+----------+--------+
+
+
+
+
+*-------------------------------------------------------------------------------
+*                   RFC test values from above table...
+*-------------------------------------------------------------------------------
+
+* Test input, and expected result  >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->  (expected result)
+
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:59                                                                                   94287082
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:59                                                             46119246
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:59          90693936
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111109                                                                           07081804
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111109                                                     68084774
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111109  25091201
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111111                                                                           14050471
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111111                                                     67062674
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111111  99943326
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1234567890                                                                           89005924
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1234567890                                                     91819424
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1234567890  93441116
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:2000000000                                                                           69279037
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:2000000000                                                     90698825
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:2000000000  38618901
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:20000000000                                                                          65353130
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:20000000000                                                    77737706
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:20000000000 47863826
+
+
+*----------------------------------------------
+*               fishtest
+*----------------------------------------------
+TEST:SHA1:ABC345:6:30:3690   503574 (fishtest)
