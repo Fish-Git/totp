@@ -1,5 +1,5 @@
-// Copyright (C) 2020 Chris Webb <chris@arachsys.com>
-// Copyright (C) 2023 "Fish" (David B. Trout) <fish@softdevlabs.com>
+// Copyright (C) Chris Webb <chris@arachsys.com>
+// Copyright (C) "Fish" (David B. Trout) <fish@softdevlabs.com>
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -22,14 +22,27 @@
 #include "stdafx.h"
 
 //------------------------------------------------------------------------------
-//                               TOTP
+//                                 TOTP
 //------------------------------------------------------------------------------
 //
-//  Input "shared secret" line read from stdin:
+//  The only input is the "shared secret" line, which is read from stdin
+//  (i.e. either from the keyboard or from a file redirected to stdin).
+//
+//  Note: this program is purposely written to NOT obtain any of its runtime
+//  options via command-line arguments, since: 1) each option pertains to
+//  the specific shared secret and its resulting calculated totp code, and
+//  2) the logic to parse the command line options would only unnecessarily
+//  complicate the logic for what should be a very simple program.
+//
+//  The format of the "shared secret" input line is as follows:
 //
 //
-//   [*#;][TEST:][DIGEST:]SECRET[:DIGITS[:INTERVAL[:OFFSET]]]  [any text...]
+//   [*#;][TEST:][DIGEST:]SECRET[:DIGITS[:INTERVAL[:OFFSET]]][*#;][any text...]
 //
+//
+//  Thus the only required portion of the shared secret input line is the
+//  shared secret itself. All of the other directives on the input line are
+//  optional.
 //
 //   *#;          If the statement begins with either '*', '#' or ';',
 //                then the entire line is completely ignored. This allows
@@ -40,37 +53,67 @@
 //                Table 1 of Appendix B on Page 15 of RFC 6238, used to
 //                validate correct program functionality.
 //
-//   DIGEST       Can be "sha1:", "sha256:" or "sha512:", and defaults to
-//                the most commonplace choice of "sha1:" if unspecified.
+//   DIGEST       Can be "sha1", "sha256" or "sha512", and defaults to
+//                the Google Authenticator value of "sha1" if unspecified.
 //
 //   SECRET       Is the only compulsory field. As with Google Authenticator,
 //                it should be base32 encoded using the standard [A-Z2-7]
-//                alphabet without padding.
+//                alphabet. Lowercase and/or blanks may be used for readability
+//                as all blanks are removed and all non-blanks are automatically
+//                converted to uppercase.
 //
-//   DIGITS       Is the number of decimal output digits and can be 6, 7 or 8.
-//                It defaults to the standard key_len of 6.
+//   DIGITS       Is the number of decimal output digits and can be 6, 7,
+//                or 8. It defaults to the Google Authenticator value of 6.
 //
-//   INTERVAL
+//   INTERVAL,
 //   OFFSET       Are the counter interval in seconds and the (signed) Unix
 //                time at which the counter starts. These should usually be
-//                left at the defaults of 30 and 0 respectively, but it is
-//                sometimes handy to specify an OFFSET of +/- the interval
-//                to get the next or previous code in the sequence.
+//                left at the Google Authenticator defaults of 30 and 0,
+//                but it is sometimes handy to specify an OFFSET of +/- the
+//                interval to get the next or previous code in the sequence.
 //
-//                NOTE: if the "TEST:" option was specified, then OFFSET is
-//                the exact time() value to be used for testing.
+//                NOTE: when the "TEST:" option is specified, then OFFSET
+//                is the exact time() value to be used for testing.
 //
+//   COMMENT...   Any trailing comment MUST start with a non-base32 character!
+//
+//  There are no command line options. The only required input is your secret,
+//  always from stdin. You can either paste it directly into the program, or
+//  redirect it from a file.
+//
+//  If you choose to paste it, don't forget to press the enter key afterwards.
+//  The program is line oriented, so you must end each line with a newline.
+//
+//  If not redirecting input from a file (i.e. if pasting from the keyboard),
+//  use Ctrl+C to exit the program. Otherwise if input is from a file, the
+//  program will exit automatically once EOF is reached on stdin.
+
 //------------------------------------------------------------------------------
+
+#define TOTP_VERSION    VERSION_STR
+
+#define SEP_CHAR        ':'         // colon
 
 static const char* base32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-#define DEF_DIGITS      6           // (default output digits)
-#define DEF_INTERVAL    30          // (default time interval)
-#define DEF_OFFSET      0           // (default time offset)
+#define DEF_DIGITS      6           // (default output digits) (Google Authenticator)
+#define DEF_INTERVAL    30          // (default time interval) (Google Authenticator)
+#define DEF_OFFSET      0           // (default time offset)   (Google Authenticator)
 
 #define BASE32_BITS     5           // (because 2**5 = 32, Duh!)
 #define BITS_PER_BYTE   CHAR_BIT    // (there are 8 bits in a byte/char)
 #define GETLINE_CHUNK   128         // (getline function chunk size)
+
+static bool g_bStdinKeyboard = true;
+
+//---------------------------------------------------------------------
+//                      is_keyboard_stdin
+//---------------------------------------------------------------------
+
+static bool is_keyboard_stdin( HANDLE hStdin )
+{
+    return (g_bStdinKeyboard = (GetFileType( hStdin ) == FILE_TYPE_CHAR));
+}
 
 //---------------------------------------------------------------------
 //                      disable_stdin_echo
@@ -86,7 +129,7 @@ static bool disable_stdin_echo()
     if (!hStdin || hStdin == INVALID_HANDLE_VALUE)
         return false;
 
-    if (GetFileType( hStdin ) != FILE_TYPE_CHAR)
+    if (!is_keyboard_stdin( hStdin ))
         return true; // (presume redirected)
 
     // It's a console device; disable echoing
@@ -134,7 +177,7 @@ static ssize_t  my_getline( char** buf, size_t* bufsiz, FILE* f )
     while (c != EOF)
     {
         if (1
-            && (p - bufptr + 1) > (ssize_t)size
+            && (p - bufptr + 2) > (ssize_t)size
             && !(bufptr = (char*) realloc( bufptr, (size += GETLINE_CHUNK) ))
         )
             return EOF;
@@ -152,6 +195,36 @@ static ssize_t  my_getline( char** buf, size_t* bufsiz, FILE* f )
     *bufsiz = size;
 
     return p - bufptr - 1;
+}
+
+//---------------------------------------------------------------------
+//                         is_comment_char
+//---------------------------------------------------------------------
+
+static bool is_comment_char( char c )
+{
+    return (0
+            || c == '*'     // asterisk
+            || c == '#'     // number sign, pound sign, or hash tag
+            || c == ';'     // semi-colon
+            );
+}
+
+//---------------------------------------------------------------------
+//                         my_rem_blanks
+//---------------------------------------------------------------------
+
+static size_t my_rem_blanks( char* src )
+{
+    char* dst = src;
+    do
+    {
+        while (isspace( *src ))
+            ++src;
+    }
+    while (*dst++ = *src++);
+
+    return strlen( src );
 }
 
 //---------------------------------------------------------------------
@@ -193,8 +266,35 @@ int main( void )
 
     if (!disable_stdin_echo())
     {
-        printf("ERROR: disable_stdin_echo() FAILED!\n");
+        fprintf( stderr, "ERROR: disable_stdin_echo() FAILED!\n" );
         return EXIT_FAILURE;
+    }
+
+    //-----------------------------------------------------------------
+    // Display version information and cmdline usage (i.e. help info)
+    //-----------------------------------------------------------------
+
+    if (g_bStdinKeyboard)
+    {
+        fprintf( stderr,
+
+            "\n  Fish's x64 Windows TOTP, version "TOTP_VERSION".\n\n"
+
+            "  There are no command line options. The only required input\n"
+            "  is your secret, always from stdin. You can either paste it\n"
+            "  directly into the program, or redirect it from a file.\n\n"
+
+            "  If you choose to paste it, don't forget to press the enter\n"
+            "  key afterwards. The program is line oriented, so you must\n"
+            "  end each line with a newline.\n\n"
+
+            "  Refer to documentation for input format.\n\n"
+
+            "  If not redirecting input from a file (i.e. if pasting from\n"
+            "  the keyboard), use Ctrl+C to exit the program. Otherwise if\n"
+            "  input is from a file, the program will exit automatically\n"
+            "  once EOF is reached on stdin.\n\n"
+        );
     }
 
     //-----------------------------------------------------------------
@@ -208,15 +308,10 @@ int main( void )
 
     while (my_getline( &line, &linesize, stdin ) >= 0)
     {
-        secret = line + strspn( line, "\t " ); // (ignore any leading whitespace)
+        linesize = my_rem_blanks( line );
+        secret = line;
 
-        // Ignore comment lines...
-
-        if (0
-            || secret[0] == '*'
-            || secret[0] == '#'
-            || secret[0] == ';'
-        )
+        if (is_comment_char( secret[0] ))
             continue;
 
         // Extract the TEST option, if specified...
@@ -243,7 +338,7 @@ int main( void )
             // of the SECRET value's base32 characters...
 
             if (!(p = strchr( base32, *secret )))
-                break; // (either ':' separator or end of SECRET string)
+                break; // (either SEP_CHAR or end of SECRET string)
 
             // Convert this base32 character to its 5-bit binary eqivalent,
             // and add it to our running total...
@@ -257,13 +352,13 @@ int main( void )
             {
                 // (make room for another byte...)
 
-                while (key_len >= key_size)  // (Note! ">=", NOT just ">"!)
+                while (key_len >= key_size)
                 {
                     key_size = key_size ? key_size << 1 : 64;
 
                     if (!(key = (uint8_t*) realloc( key, key_size )))
                     {
-                        printf("ERROR: realloc( key, %d ) FAILED! - %s\n",
+                        fprintf( stderr, "ERROR: realloc( key, %d ) FAILED! - %s\n",
                             (int) key_size, strerror( errno ));
                         return EXIT_FAILURE;
                     }
@@ -283,9 +378,9 @@ int main( void )
 
         // Extract other i/p parameters: DIGITS, INTERVAL and OFFSET...
 
-        digits   = *secret == ':' ? (uint8_t) strtoul(  secret + 1, &secret, 10 ) : DEF_DIGITS;
-        interval = *secret == ':' ?           strtoull( secret + 1, &secret, 10 ) : DEF_INTERVAL;
-        offset   = *secret == ':' ?           strtoll(  secret + 1, &secret, 10 ) : DEF_OFFSET;
+        digits   = *secret == SEP_CHAR ? (uint8_t) strtoul(  secret + 1, &secret, 10 ) : DEF_DIGITS;
+        interval = *secret == SEP_CHAR ?           strtoull( secret + 1, &secret, 10 ) : DEF_INTERVAL;
+        offset   = *secret == SEP_CHAR ?           strtoll(  secret + 1, &secret, 10 ) : DEF_OFFSET;
 
         // Calculate and output the resulting "Time-based One-Time-
         // Password" (TOTP) verification code... (but don't bother
@@ -405,9 +500,9 @@ int main( void )
 
             while (*secret == ' ') ++secret;  // (skip past preceding blanks)
 
-                 if (digits == 6) printf( "%06u  %s", code %   1000000, secret );
-            else if (digits == 7) printf( "%07u  %s", code %  10000000, secret );
-            else if (digits == 8) printf( "%08u  %s", code % 100000000, secret );
+                 if (digits == 6) printf( "%06u  %s\n", code %   1000000, secret );
+            else if (digits == 7) printf( "%07u  %s\n", code %  10000000, secret );
+            else if (digits == 8) printf( "%08u  %s\n", code % 100000000, secret );
 
             fflush( stdout );   // (make sure they see our output!)
         }

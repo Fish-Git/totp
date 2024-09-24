@@ -1,20 +1,45 @@
 Windows 'TOTP'
 ==============
 
-### Copyright (C) 2023 "Fish" (David B. Trout) <fish@softdevlabs.com>
-### Based on [original work](https://github.com/arachsys/totp), Copyright (C) 2020 Chris Webb <chris@arachsys.com> 
+### Copyright (C) "Fish" (David B. Trout) <fish@softdevlabs.com>
+### Based on [original work](https://github.com/arachsys/totp), Copyright (C) Chris Webb <chris@arachsys.com> 
 
 This is a simple time-based one-time password generator, compatible with the
-RFC 6238 TOTP scheme popularised by Google Authenticator, written for Windows.
+RFC 6238 TOTP scheme popularised by [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator), written for Windows.
 
 
-Usage
+Using
 -----
+
+`totp` is a simple command line tool. Simply open a Command Prompt window and enter
+the command `totp` by itself _(the tool has no options!)_ and then press enter, and
+you should see:
+
+&nbsp;
+![totop start](totp1.jpg)
+
+</br>
+
+From here, simply paste your `SECRET` and press enter, and you should see your code displayed:
+
+&nbsp;
+![totop use](totp2.jpg)
+
+</br>
+
+Then you can either enter another `SECRET` (and press enter) to see another code displayed,
+</br>or use "Ctrl+C" to exit the program:
+
+&nbsp;
+![totop exit](totp3.jpg)
+
+Usage Details
+-------------
 
 The **`totp`** utility reads lines from standard input, containing TOTP secrets
 in the format:
 <pre>
-              [*#;][TEST:][DIGEST:]<b>SECRET</b>[:DIGITS[:INTERVAL[:OFFSET]]]  [any text...]
+       [*#;][TEST:][DIGEST:]<i><b>SECRET</b></i>[:DIGITS[:INTERVAL[:OFFSET]]][*#;[any text...]]
 </pre>
 
 Where:
@@ -23,10 +48,11 @@ Field | Description
 ------|------------
 `*#;`      |   If the statement begins with either `*`, `#` or `;` it is treated as a comment and the entire line is completely ignored. Blank lines are also ignored. This allows creation of self-documenting test files used as input. &nbsp;_(See e.g. file `stdin.txt` provided with the product.)_
 `TEST`     |   Changes the meaning of `OFFSET` from it's normal meaning to the exact `time()` value to be used as per Table 1 of Appendix B on Page 15 of RFC 6238, used to validate correct program functionality.
-`DIGEST`   |   Can be `sha1`, `sha256` or `sha512`, and if left unspecified, defaults to the most commonplace choice of `sha1`.
-`SECRET`   |   Is the only compulsory field. As with Google Authenticator, it should be [base32](https://en.wikipedia.org/wiki/Base32) encoded using the standard [A-Z2-7] alphabet without padding.
-`DIGITS`   |   Is the number of decimal output digits and can be 6, 7 or 8. It defaults to the standard length of 6.
-`INTERVAL,`<br>`OFFSET`   |   Are the counter interval in seconds, and the (signed) Unix time at which the counter starts. These should usually be left at the defaults of 30 and 0 respectively, but it is sometimes handy to specify an `OFFSET` of +/- the interval to get the next or previous code in the sequence.<br><br>_**NOTE:** &nbsp;if the `TEST` option was specified, then `OFFSET` is the exact `time()` value to be used for testing._
+`DIGEST`   |   Can be `sha1`, `sha256` or `sha512`, and defaults to the [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator) value of `sha1` if unspecified.
+_**`SECRET`**_   |   Is the only compulsory field. As with [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator), it should be base32 encoded using the standard [A-Z2-7] alphabet. Lowercase and/or blanks may be used for readability as all blanks are removed and all non-blanks are automatically converted to uppercase.
+`DIGITS`   |   Is the number of decimal output digits and can be either 6, 7, or 8. It defaults to the [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator) value of 6 digits.
+`INTERVAL,`<br>`OFFSET`   |   Are the counter interval _(time step)_ in seconds, and the (signed) Unix time at which the counter starts. These should usually be left at the defaults of 30 and 0 respectively, but it is sometimes handy to specify an `OFFSET` of +/- the interval to get the next or previous code in the sequence.<br><br>_**NOTE:** &nbsp;if the `TEST` option was specified, then `OFFSET` is the exact [`time()`](https://www.tutorialspoint.com/c_standard_library/c_function_time.htm) value to be used for testing._
+`COMMENT...` | Any trailing comment _**MUST**_ start with a _non-base32_ character! _(such as a comment character)_
 
 
 For each valid secret line read, the tool prints the current value of the
@@ -36,34 +62,59 @@ file to be labelled and distinguished.
 
 For example, given the input:
 ```
-  sha256:ABCDEFGHIJKLMNOPQRSTUVWXYZ234567:8 adam@acme.org
-  765432ZYXWVUTSRQPONMLKJIHGFEDCBA brian@megacorp.com (current)
-  765432ZYXWVUTSRQPONMLKJIHGFEDCBA:6:30:-30 brian@megacorp.com (next)
+  sha256:ABCDEFGHIJKLMNOPQRSTUVWXYZ234567:8 *adam@acme.org
+  765432ZYXWVUTSRQPONMLKJIHGFEDCBA *brian@megacorp.com (current)
+  765432ZYXWVUTSRQPONMLKJIHGFEDCBA:6:30:-30 *brian@megacorp.com (next)
 ```
 **`totp`** might generate:
 ```
-  01360115 adam@acme.org
-  889775 brian@megacorp.com (current)
-  140851 brian@megacorp.com (next)
+  01360115 *adam@acme.org
+  889775 *brian@megacorp.com (current)
+  140851 *brian@megacorp.com (next)
 ```
 
 Compatibility
 -------------
 
-Google Authenticator hard-codes the sha1 digest, 30 second time step and
-zero offset, hence those parameters default to those values in **`totp`**.
+[Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator) uses the `sha1` digest,
+a 30 second time step, and  6 digit codes. Hence `totp` also uses those same values by **default**.
 
-[Authy](https://authy.com/) also natively supports 7-digit codes. These use the same `sha1` digest
-with zero offset, but with an update interval of only 10 seconds.
+[Authy](https://authy.com/) on the other hand, while it also uses the same `sha1` digest,
+uses a time step of only _10 seconds_ and displays a _7 digit_ code instead. Thus, in order to use
+`totp` with [Authy](https://authy.com/) sites, you must enter your `SECRET` in the form: <pre><b><i>SECRET</i></b>:7:10</pre>
 
-Although these applications store keys verbatim, they have no easy interface
-to inspect or extract the keys. You may need to create new/replacement
-two-factor authentication keys if you stored keys in these programs without
-retaining your own copy.
+Although these applications store their keys _(i.e. your `SECRET` value)_ verbatim, they have no easy interface
+to inspect or extract _(recover)_ those key values once generated. If you failed to save _(write down somewhere safe)_
+what your generated key (`SECRET`) was, you will have to create brand new/replacement two-factor authentication
+keys again, being more careful to record your new key (`SECRET`) somewhere safe this time.
+You should treat generated TOTP keys (secret values) as if they were passwords.
 
 
-Changes to this Windows version by Fish:
-----------------------------------------
+Changes in totp version 1.2:
+----------------------------
+
+
+  * Remove spaces from input line. This is mostly for [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator)
+    compatibility, as its `SECRET` is always shown to the user as a lowercase
+    string with a blank/space inserted after every 4 characters for readability.
+<br><br>
+    _**Note:** This change requires your trailing comment (if any) to begin with
+    a non-base32 character (such as a '*', '#' or ';' comment character) so that
+    the end of the `SECRET` string can be properly detected._
+
+
+Changes in totp version 1.1:
+----------------------------
+
+
+  * Always convert input to uppercase, since [A-Z2-7] base32 encoding is required,
+    and currently `totp` rejects anything that is not valid base32 `SECRET`. This
+    is mostly for [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator)
+    compatibility as its `SECRET` is always shown to the user as a lowercase readable string.
+
+
+Changes in totp version 1.0:
+----------------------------
 
   * Made it a Visual Studio 2008 .cpp project (Duh!)
     &nbsp;_(Note: later versions of Visual Studio should be able to easily
@@ -104,8 +155,8 @@ Disclosure of the secrets used to seed this generator allows an attacker to
 generate valid authentication codes and should be viewed as equivalent to
 a compromised password.
 
-**Fish edit:** &nbsp;_The following is a Linux/Unix-ism. I recommend using a
-password safe product instead._
+_**Fish edit:** &nbsp;The following is a Linux/Unix-ism. I however personally recommend
+using a "[password manager](https://en.wikipedia.org/wiki/Password_manager)" product instead.**`(*)`**_
 
 You might consider encrypted storage of secrets, decrypting them when
 required with something like
@@ -123,8 +174,8 @@ would present an easy target to an attacker.
 Please assess the security implications and trade-offs in your own
 environment and circumstances.
 
-**Fish edit:** &nbsp;_I personally recommend using a password safe, such as [Bruce Schneier](https://en.wikipedia.org/wiki/Bruce_Schneier)'s
-excellent [Password Safe](https://en.wikipedia.org/wiki/Password_Safe) product._
+_**`(*)` Fish edit:** &nbsp;I personally recommend using a local "[password manager](https://en.wikipedia.org/wiki/Password_manager)" program instead, such as [Bruce Schneier](https://en.wikipedia.org/wiki/Bruce_Schneier)'s
+most excellent [Password Safe](https://en.wikipedia.org/wiki/Password_Safe) product._
 
 Building and installing
 -----------------------

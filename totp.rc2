@@ -1,4 +1,4 @@
-// Copyright (C) 2023, Software Development Laboratories, "Fish" (David B. Trout)
+// Copyright (C), Software Development Laboratories, "Fish" (David B. Trout)
 //////////////////////////////////////////////////////////////////////////////////////////
 //
 // TOTP.RC2  --  resources Microsoft Visual C++ does not edit directly
@@ -65,19 +65,21 @@ PRODUCTVERSION   VERMAJOR_NUM,  VERINTER_NUM,  VERMINOR_NUM,  REV_NUM
             VALUE  "CompanyName",        COMPANY                "\0"
 
             VALUE  "LegalCopyright",     COPYRIGHT " " COMPANY  "\r\n\r\n"
-                                         "Based on 'totp' Copyright (C) 2020 Chris Webb <chris@arachsys.com>" "\0"
+                                         "Based on 'totp' Copyright (C) Chris Webb <chris@arachsys.com>" "\0"
 
 #include "SpecialBuild.rc2"
 
             // Custom Attributes...
 
-            VALUE  "Product URL",        PRODUCT_URL            "\r\n\r\n"
-                                         "https://github.com/arachsys/totp"     "\0"
+            VALUE  "Product URL",        "(Fish's)   https://github.com/Fish-Git/totp" "\r\n\r\n"
+                                         "(Original) https://github.com/arachsys/totp" "\0"
 
             VALUE  "Product Email",      PRODUCT_EMAIL          "\r\n\r\n"
-                                         "chris@arachsys.com"                   "\0"
+                                         "chris@arachsys.com"   "\0"
 
             VALUE  "SVN Revision",       REV_STR             "\0"    // (from AutoBuildCount.h)
+
+            VALUE  "Comment",            "\""Google Authenticator\"" compatible!"  "\0"
         }
     }
 }

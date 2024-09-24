@@ -67,30 +67,76 @@
 *-------------------------------------------------------------------------------
 *                   RFC test values from above table...
 *-------------------------------------------------------------------------------
-
+*
+*   The format of the "shared secret" input line is as follows:
+* 
+* 
+*    [*#;][TEST:][DIGEST:]SECRET[:DIGITS[:INTERVAL[:OFFSET]]][*#;][any text...]
+* 
+* 
+*   Thus the only required portion of the shared secret input line is the
+*   shared secret itself. All of the other directives on the input line are
+*   optional.
+* 
+*    *#;          If the statement begins with either '*', '#' or ';',
+*                 then the entire line is completely ignored. This allows
+*                 creation of self-documenting test files used as input.
+* 
+*    TEST         Changes the meaning of OFFSET from it's normal meaning
+*                 to instead be the exact time() value to be used as per
+*                 Table 1 of Appendix B on Page 15 of RFC 6238, used to
+*                 validate correct program functionality.
+* 
+*    DIGEST       Can be "sha1", "sha256" or "sha512", and defaults to
+*                 the Google Authenticator value of "sha1" if unspecified.
+* 
+*    SECRET       Is the only compulsory field. As with Google Authenticator,
+*                 it should be base32 encoded using the standard [A-Z2-7]
+*                 alphabet. Lowercase and/or blanks may be used for readability
+*                 as all blanks are removed and all non-blanks are automatically
+*                 converted to uppercase.
+* 
+*    DIGITS       Is the number of decimal output digits and can be 6, 7,
+*                 or 8. It defaults to the Google Authenticator value of 6.
+* 
+*    INTERVAL,
+*    OFFSET       Are the counter interval in seconds and the (signed) Unix
+*                 time at which the counter starts. These should usually be
+*                 left at the Google Authenticator defaults of 30 and 0,
+*                 but it is sometimes handy to specify an OFFSET of +/- the
+*                 interval to get the next or previous code in the sequence.
+* 
+*                 NOTE: when the "TEST:" option is specified, then OFFSET
+*                 is the exact time() value to be used for testing.
+* 
+*    COMMENT...   Any trailing comment MUST start with a non-base32 character!
+*
+*-------------------------------------------------------------------------------
 * Test input, and expected result  >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->   >>>---->  (expected result)
 
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:59                                                                                   94287082
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:59                                                             46119246
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:59          90693936
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111109                                                                           07081804
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111109                                                     68084774
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111109  25091201
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111111                                                                           14050471
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111111                                                     67062674
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111111  99943326
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1234567890                                                                           89005924
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1234567890                                                     91819424
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1234567890  93441116
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:2000000000                                                                           69279037
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:2000000000                                                     90698825
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:2000000000  38618901
-TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:20000000000                                                                          65353130
-TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:20000000000                                                    77737706
-TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:20000000000 47863826
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:59                                                                                      *94287082
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:59                                                                *46119246
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:59             *90693936
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111109                                                                              *07081804
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111109                                                        *68084774
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111109     *25091201
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1111111111                                                                              *14050471
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1111111111                                                        *67062674
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1111111111     *99943326
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:1234567890                                                                              *89005924
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:1234567890                                                        *91819424
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:1234567890     *93441116
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:2000000000                                                                              *69279037
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:2000000000                                                        *90698825
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:2000000000     *38618901
+TEST:SHA1:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ:8:30:20000000000                                                                             *65353130
+TEST:SHA256:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA:8:30:20000000000                                                       *77737706
+TEST:SHA512:GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA:8:30:20000000000    *47863826
 
 
-*----------------------------------------------
-*               fishtest
-*----------------------------------------------
-TEST:SHA1:ABC345:6:30:3690   503574 (fishtest)
+   *----------------------------------------------
+   *               fishtest
+   *----------------------------------------------
+TEST:SHA1:ABC345:6:30:3690   *503574_(fishtest)
+  TEST:SHA1:ABC 345:6:30:3690   *503574_(fishtest)
+TEST:SHA1:  A   B  C   3 4  5  :6:30:3690   *503574_(fishtest)

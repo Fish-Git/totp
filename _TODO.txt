@@ -1,0 +1,4 @@
+
+C:\Program Files\OpenSSL-Win64\license.txt
+
+libcrypto-3-x64.dll

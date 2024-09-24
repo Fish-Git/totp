@@ -21,3 +21,5 @@ typedef __int64 ssize_t;            // (missing from Windows)
 #define time        _time64         // (want 64-bit time)
 
 // Add any additional #include headers or #define constants here...
+
+#include "Version.h"	            // our version #defines

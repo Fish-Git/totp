@@ -7,13 +7,13 @@
 #pragma once
 
 
-#define VERMAJOR_NUM  1           // MAJOR Release (program radically changed)
+#define VERMAJOR_NUM  1         /* MAJOR Release (program radically changed) */
 #define VERMAJOR_STR "1"
 
-#define VERINTER_NUM  0           // Minor Enhancements (new/modified feature, etc)
-#define VERINTER_STR "0"
+#define VERINTER_NUM  2         /* Minor Enhancements (new/modified feature, etc) */
+#define VERINTER_STR "2"
 
-#define VERMINOR_NUM  0           // Bug Fix
+#define VERMINOR_NUM  0         /* Bug Fix */
 #define VERMINOR_STR "0"
 
 
@@ -24,7 +24,7 @@
 #if 0 // Fish: disable for public consumption  (AutoBuildCount is my custom versioning)
 
   //////////////////////////////////
-  #include "AutoBuildCount.h"     //  (where repo rev num/hash are defined)
+  #include "AutoBuildCount.h"     //  (where SVNREV_STR and SVNREV_NUM are defined)
   //////////////////////////////////
 
 #else // Fish: public releases don't have my custom AutoBuildCount versioning system)

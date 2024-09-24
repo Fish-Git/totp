@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #define PRODUCT         "Fish's 'TOTP' (Time-Based One-Time-Password) Utility"
-#define COPYRIGHT       "Copyright (C) 2023 'Fish' (David B. Trout)"
+#define COPYRIGHT       "Copyright (C) 'Fish' (David B. Trout)"
 #define COMPANY         "Software Development Laboratories"
 #define PRODUCT_URL     "http://www.softdevlabs.com"
 #define PRODUCT_EMAIL   "fish@softdevlabs.com"

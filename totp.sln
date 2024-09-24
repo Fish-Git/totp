@@ -9,12 +9,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		_TODO.txt = _TODO.txt
 		COPYING = COPYING
 		Fish OpenSSL README.txt = Fish OpenSSL README.txt
+		Makefile = Makefile
 		README = README
 		README.md = README.md
 		RFC4226.pdf = RFC4226.pdf
 		RFC6238.pdf = RFC6238.pdf
 		stdin.txt = stdin.txt
 		stdout.txt = stdout.txt
+		totp1.jpg = totp1.jpg
+		totp2.jpg = totp2.jpg
+		totp3.jpg = totp3.jpg
 	EndProjectSection
 EndProject
 Global
